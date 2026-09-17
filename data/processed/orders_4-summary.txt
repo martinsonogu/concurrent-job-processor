@@ -1,0 +1,3 @@
+Source file: data/incoming/orders_4.csv
+Rows processed: 4
+Total revenue: $269.87

@@ -1,14 +1,15 @@
 package com.portfolio.jobprocessor;
 
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
     private static final int WORKER_COUNT = 3;
-    private static final int JOB_COUNT = 8;
+    private static final String INCOMING_DIR = "data/incoming";
+    private static final String PROCESSED_DIR = "data/processed";
 
     public static void main(String[] args) throws InterruptedException {
         JobQueue jobQueue = new JobQueue();
@@ -18,20 +19,19 @@ public class Main {
             pool.submit(new Worker("worker-" + i, jobQueue));
         }
 
-        AtomicInteger failCounter = new AtomicInteger(0);
-        for (int i = 1; i <= JOB_COUNT; i++) {
-            final int jobNumber = i;
-            Runnable task = () -> {
-                simulateWork();
-                if (jobNumber % 3 == 0 && failCounter.getAndIncrement() < 2) {
-                    throw new RuntimeException("simulated transient failure");
-                }
-                System.out.println("   -> did the actual work for job " + jobNumber);
-            };
-            jobQueue.submit(new Job(task, 3));
+        File incomingDir = new File(INCOMING_DIR);
+        File[] csvFiles = incomingDir.listFiles((dir, name) -> name.endsWith(".csv"));
+
+        if (csvFiles == null || csvFiles.length == 0) {
+            System.out.println("No CSV files found in " + INCOMING_DIR);
+        } else {
+            for (File csvFile : csvFiles) {
+                Runnable task = new CsvOrderTask(csvFile.getPath(), PROCESSED_DIR);
+                jobQueue.submit(new Job(task, 3));
+            }
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(3000);
 
         System.out.println("\nShutting down...");
         pool.shutdownNow();
@@ -39,14 +39,6 @@ public class Main {
         System.out.println("All workers stopped cleanly: " + terminated);
 
         printSummary(jobQueue);
-    }
-
-    private static void simulateWork() {
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     private static void printSummary(JobQueue jobQueue) {
