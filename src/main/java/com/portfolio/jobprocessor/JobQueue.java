@@ -3,11 +3,11 @@ package com.portfolio.jobprocessor;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class JobQueue {
 
-    private final BlockingQueue<Job> queue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Job> queue = new PriorityBlockingQueue<>();
     private final ConcurrentHashMap<String, Job> registry = new ConcurrentHashMap<>();
 
     public void submit(Job job) {

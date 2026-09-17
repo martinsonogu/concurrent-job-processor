@@ -13,22 +13,25 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
         JobQueue jobQueue = new JobQueue();
-        ExecutorService pool = Executors.newFixedThreadPool(WORKER_COUNT);
-
-        for (int i = 1; i <= WORKER_COUNT; i++) {
-            pool.submit(new Worker("worker-" + i, jobQueue));
-        }
 
         File incomingDir = new File(INCOMING_DIR);
         File[] csvFiles = incomingDir.listFiles((dir, name) -> name.endsWith(".csv"));
 
-        if (csvFiles == null || csvFiles.length == 0) {
-            System.out.println("No CSV files found in " + INCOMING_DIR);
-        } else {
+        if (csvFiles != null) {
             for (File csvFile : csvFiles) {
                 Runnable task = new CsvOrderTask(csvFile.getPath(), PROCESSED_DIR);
-                jobQueue.submit(new Job(task, 3));
+                jobQueue.submit(new Job(task, 3, 0)); // priority 0 = normal
             }
+        }
+
+        Runnable urgentTask = () -> System.out.println("   -> handled urgent alert!");
+        jobQueue.submit(new Job(urgentTask, 3, 10)); // priority 10 = urgent
+
+        System.out.println("All jobs submitted. Starting workers now...\n");
+
+        ExecutorService pool = Executors.newFixedThreadPool(WORKER_COUNT);
+        for (int i = 1; i <= WORKER_COUNT; i++) {
+            pool.submit(new Worker("worker-" + i, jobQueue));
         }
 
         Thread.sleep(3000);
