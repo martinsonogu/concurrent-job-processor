@@ -43,7 +43,8 @@ public class Worker implements Runnable {
 
                 if (attemptNumber >= job.getMaxAttempts()) {
                     job.setStatus(JobStatus.FAILED);
-                    System.out.println("[" + name + "] giving up on " + job);
+                    jobQueue.sendToDeadLetter(job);
+                    System.out.println("[" + name + "] giving up on " + job + " -> sent to dead letter queue");
                     return;
                 }
 

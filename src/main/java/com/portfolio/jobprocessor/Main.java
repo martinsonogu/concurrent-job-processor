@@ -44,10 +44,19 @@ public class Main {
         printSummary(jobQueue);
     }
 
-    private static void printSummary(JobQueue jobQueue) {
+        private static void printSummary(JobQueue jobQueue) {
         System.out.println("\n--- Job Summary ---");
         for (Job job : jobQueue.allJobs()) {
             System.out.println(job);
+        }
+
+        System.out.println("\n--- Dead Letter Queue (permanently failed jobs) ---");
+        if (jobQueue.getDeadLetterJobs().isEmpty()) {
+            System.out.println("(none)");
+        } else {
+            for (Job job : jobQueue.getDeadLetterJobs()) {
+                System.out.println(job);
+            }
         }
     }
 }
