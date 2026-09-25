@@ -7,6 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class JobQueue {
 
     private final BlockingQueue<Job> queue = new PriorityBlockingQueue<>();
